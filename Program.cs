@@ -22,11 +22,12 @@ namespace PdfFileCompress
                 Program p = new Program();
 
                 int count = Convert.ToInt32(ConfigurationManager.AppSettings["count"].ToString());
-                p.pdfcompress(count);
+                int sleepsecond = Convert.ToInt32(ConfigurationManager.AppSettings["sleepsecond"].ToString());
+                p.pdfcompress(count, sleepsecond);
             }
         }
 
-        private void pdfcompress(int count)
+        private void pdfcompress(int count, int sleepsecond)
         {
             string sql = string.Empty;
             try
@@ -51,6 +52,7 @@ namespace PdfFileCompress
                             DBMgr.ExecuteNonQuery(sql);
                         }
                     }
+                    if (sleepsecond > 0) { Thread.Sleep(sleepsecond); }                    
                 }
 
                  /*if (dt.Rows.Count > 0)//如果一次性送多个文件进入压缩程序，会有错误提示,所以每次只送一条记录
