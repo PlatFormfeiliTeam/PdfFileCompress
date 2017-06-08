@@ -47,8 +47,16 @@ namespace PdfFileCompress
                         //再对扩展名判断
                         if ((dt.Rows[i]["FILESUFFIX"] + "").ToUpper() == "PDF" || (dt.Rows[i]["FILESUFFIX"] + "").ToUpper() == ".PDF")
                         {
-                            System.Diagnostics.Process.Start(shrinkdir, filedir + dt.Rows[i]["FILENAME"]);
-                            sql = "update pdfshrinklog set iscompress='1',shrinktime=sysdate WHERE ID='" + dt.Rows[i]["ID"] + "'";
+                            if ((new FileInfo(filedir + dt.Rows[i]["FILENAME"])).Length > 0)
+                            {
+                                System.Diagnostics.Process.Start(shrinkdir, filedir + dt.Rows[i]["FILENAME"]);
+                                sql = "update pdfshrinklog set iscompress='1',shrinktime=sysdate WHERE ID='" + dt.Rows[i]["ID"] + "'";
+                            }
+                            else
+                            {
+                                sql = "update pdfshrinklog set iscompress='999',shrinktime=sysdate WHERE ID='" + dt.Rows[i]["ID"] + "'";//--大小为0KB，标记为999
+                            }
+                            
                             DBMgr.ExecuteNonQuery(sql);
                         }
                     }
