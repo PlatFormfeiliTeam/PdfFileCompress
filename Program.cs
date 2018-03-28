@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using iTextSharp.text.pdf;
 
 namespace PdfFileCompress
 {
@@ -39,7 +40,7 @@ namespace PdfFileCompress
                 DataTable dt = DBMgr.GetDataTable(sql);
 
 
-               for (int i = 0; i < dt.Rows.Count; i++)
+                for (int i = 0; i < dt.Rows.Count; i++)
                 {
                     if (i > count) { break; }
                     if (File.Exists(filedir + dt.Rows[i]["FILENAME"]))//先判断原始文件存在
@@ -47,20 +48,33 @@ namespace PdfFileCompress
                         //再对扩展名判断
                         if ((dt.Rows[i]["FILESUFFIX"] + "").ToUpper() == "PDF" || (dt.Rows[i]["FILESUFFIX"] + "").ToUpper() == ".PDF")
                         {
-                            if ((new FileInfo(filedir + dt.Rows[i]["FILENAME"])).Length > 0)
+                            FileInfo fi = new FileInfo(filedir + dt.Rows[i]["FILENAME"]);
+                            PdfReader reader_file = new PdfReader(@"D:\ftpserver\" + dt.Rows[i]["FILENAME"]);
+
+                            if (fi.Length > 0)
                             {
-                                System.Diagnostics.Process.Start(shrinkdir, filedir + dt.Rows[i]["FILENAME"]);
-                                sql = "update pdfshrinklog set iscompress='1',shrinktime=sysdate WHERE ID='" + dt.Rows[i]["ID"] + "'";
+                                if (fi.Length / 1024 > reader_file.NumberOfPages * 200)//---文件实际大小 > 计算页数*200K，需要压缩
+                                {
+                                    System.Diagnostics.Process.Start(shrinkdir, filedir + dt.Rows[i]["FILENAME"]);
+                                    sql = "update pdfshrinklog set iscompress='1',shrinktime=sysdate WHERE ID='" + dt.Rows[i]["ID"] + "'";
+                                }
+                                else
+                                {
+                                    fi.CopyTo(@"d:\ftpserver\" + (dt.Rows[0]["FILENAME"] + "").Replace(".pdf", "").Replace(".PDF", "") + "-web.pdf");
+                                    sql = "update pdfshrinklog set iscompress='888',shrinktime=sysdate WHERE ID='" + dt.Rows[i]["ID"] + "'";//--文件实际大小 <= 计算页数*200K，不需要压缩，标记为888
+                                }
+
                             }
                             else
                             {
                                 sql = "update pdfshrinklog set iscompress='999',shrinktime=sysdate WHERE ID='" + dt.Rows[i]["ID"] + "'";//--大小为0KB，标记为999
                             }
-                            
+
                             DBMgr.ExecuteNonQuery(sql);
+                            reader_file.Close(); reader_file.Dispose();
                         }
                     }
-                    if (sleepsecond > 0) { Thread.Sleep(sleepsecond); }                    
+                    if (sleepsecond > 0) { Thread.Sleep(sleepsecond); }
                 }
 
                  /*if (dt.Rows.Count > 0)//如果一次性送多个文件进入压缩程序，会有错误提示,所以每次只送一条记录
