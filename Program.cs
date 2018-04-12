@@ -54,7 +54,7 @@ namespace PdfFileCompress
                             if (fi.Length > 0)
                             {
                                 if (fi.Length / 1024 > reader_file.NumberOfPages * 200 
-                                    || File.Exists(@"d:\ftpserver\" + (dt.Rows[i]["FILENAME"]+"").Replace(".pdf", "").Replace(".PDF", "") + "-web.txt") == true)//---文件实际大小 > 计算页数*200K，需要压缩
+                                    || File.Exists(@"d:\ftpserver\" + (dt.Rows[i]["FILENAME"]+"").Replace(".pdf", "").Replace(".PDF", "") + ".txt") == true)//---文件实际大小 > 计算页数*200K，需要压缩
                                 {
                                     System.Diagnostics.Process.Start(shrinkdir, filedir + dt.Rows[i]["FILENAME"]);
                                     sql = "update pdfshrinklog set iscompress='1',shrinktime=sysdate WHERE ID='" + dt.Rows[i]["ID"] + "'";
